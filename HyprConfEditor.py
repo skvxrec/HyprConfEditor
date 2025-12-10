@@ -100,7 +100,10 @@ class HyprConf:
             
             for line in lines:
                 # Remove old wallpaper settings for this monitor
-                if monitor == "all" and line.strip().startswith("wallpaper") and line.strip().startswith("preload"):
+                if monitor == "all" and (
+                line.strip().startswith("wallpaper") or 
+                line.strip().startswith("preload")
+                ):
                     continue
                 elif monitor != "all" and line.strip().startswith(f"wallpaper,{monitor},") and line.strip().startswith(f"preload"):
                     continue
@@ -150,9 +153,9 @@ class HyprConf:
             )
             monitors = []
             for line in result.stdout.split('\n'):
-                if "Monitor" in line and "(" in line:
-                    monitor_name = line.split('(')[1].split(')')[0]
-                    monitors.append(monitor_name)
+                match = re.search(r'Monitor\s+([^\s]+)\s*\(', line)
+                if match:
+                    monitors.append(match.group(1))
             return monitors
         except Exception as e:
             print(f"❌ Failed to get monitor list: {e}")
