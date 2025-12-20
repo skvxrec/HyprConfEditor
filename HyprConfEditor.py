@@ -9,6 +9,7 @@ class HyprConf:
         self.config_path = Path.home() / ".config/hypr/hyprland.conf"
         self.backup_path = self.config_path.with_suffix('.conf.backup')
         self.hyprpaper_config = Path.home() / ".config/hypr/hyprpaper.conf"
+        self.fish_path = Path.home() / ".config/fish/config.fish"
     
     def backup_config(self):
         """Creates config backup"""
@@ -28,6 +29,14 @@ class HyprConf:
         """Checks if hyprland config exists"""
         if not self.config_path.exists():
             print("❌ Hyprland config not found!")
+            print(f"Expected path: {self.config_path}")
+            return False
+        return True
+    
+    def check_fish_conf(self):
+    #"""Checks if fish config exists"""
+        if not self.fish_path.exists():
+            print("❌ Fish config not found!")
             print(f"Expected path: {self.config_path}")
             return False
         return True
@@ -209,6 +218,43 @@ class HyprConf:
             else:
                 print("❓ Please enter 'y' or 'n'")
 
+    def fishalias(self):
+        old_command = input("old command: ")
+        new_command = input("new command: ")
+        falias_line = f'alias {new_command}="{old_command}"'
+        return self.fishalias_request(old_command, new_command, falias_line)
+
+
+    def fishalias_write(self, old_command, new_command, falias_line):
+        if not self.check_fish_conf():
+            return False
+
+        print(f"adding alias {falias_line}")
+        try:
+            with open(self.fish_path, 'a') as f:
+                f.write("\n# Alias added via HCE\n")
+                f.write(f"{falias_line}\n")
+            print("✅ Alias added successfully!")
+            return True
+        except Exception as e:
+            print(f"❌ Error writing to config: {e}")
+            return False
+
+        
+    def fishalias_request(self, old_command, new_command, falias_line):
+        while True:
+            ynfa = input(f"{falias_line}, correct? (y/n): ").lower()
+
+            if ynfa == 'y':
+                return self.fishalias_write(old_command, new_command, falias_line)
+            elif ynfa == 'n':
+                print("↩️  Let's try again...")
+                return self.fishalias()
+            else:
+                print("❓ Please enter 'y' or 'n'")
+
+
+
     def interactive_mode(self):
         """Interactive mode"""
         print("🎛️  Hyprland Configurator")
@@ -227,7 +273,8 @@ class HyprConf:
             print("2 - Add keybind")
             print("3 - Set wallpaper")
             print("4 - Add monitor")
-            print("5 - Exit")
+            print("5 - Add alias to fish")
+            print("6 - Exit")
 
             choice = input("\nSo? (1-5): ").strip()
 
@@ -268,8 +315,11 @@ class HyprConf:
             
             elif choice == '4':
                 self.add_monitor_interactive()
-        
+
             elif choice == '5':
+                self.fishalias()
+        
+            elif choice == '6':
                 print("BB twin 👋")
                 input("Press Enter to exit")
                 break
